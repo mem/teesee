@@ -7,7 +7,7 @@ def show_record(r)
     printf "  Cédula: %s\n", r[:CEDULA]
     printf "  Nombre: %s\n",
         r.values_at(:NOMBRE, :PAPE, :SAPE).join(' ')
-    printf "   Junta: %s\n", r[:JUNTA]
+    printf "   Junta: %s (%s)\n", r[:LOC], r[:JUNTA]
     printf "   Lugar: %s\n",
         r.values_at(:PROVINCIA, :CANTON, :DISTRITO).join(', ')
 end
@@ -48,6 +48,8 @@ Sequel.connect('sqlite://padron.db') do |db|
              :COD_PROVINCIA => :TBL_JUNTAS__COD_PROVINCIA,
              :COD_CANTON    => :TBL_JUNTAS__COD_CANTON,
              :COD_DIST_ELEC => :TBL_JUNTAS__COD_DIST_ELEC).
+        join(:TBL_CENTROS_VOTACION,
+             :JUNTA => :TBL_JUNTAS__NUM_JUNTA).
         select(:nombre,
                :pape,
                :sape,
@@ -55,7 +57,8 @@ Sequel.connect('sqlite://padron.db') do |db|
                :ediv_nombre_provincia.as(:PROVINCIA),
                :ediv_nombre_canton.as(:CANTON),
                :ediv_nombre_dist_elec.as(:DISTRITO),
-               :tbl_padron__num_junta.as(:JUNTA)
+               :tbl_padron__num_junta.as(:JUNTA),
+               :tbl_centros_votacion__descripcion.as(:LOC)
               ).
         order(:cedula)
 

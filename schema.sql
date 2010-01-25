@@ -131,3 +131,8 @@ CREATE INDEX IF NOT EXISTS
     tbl_padron_num_junta ON tbl_padron (
         num_junta
     );
+
+CREATE INDEX IF NOT EXISTS
+    tbl_centros_votacion_junta ON tbl_centros_votacion (
+        junta
+    );
