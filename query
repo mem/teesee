@@ -1,0 +1,141 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'sequel'
+
+def show_record(r)
+    printf "  Cédula: %s\n", r[:CEDULA]
+    printf "  Nombre: %s\n",
+        r.values_at(:NOMBRE, :PAPE, :SAPE).join(' ')
+    printf "   Junta: %s\n", r[:JUNTA]
+    printf "   Lugar: %s\n",
+        r.values_at(:PROVINCIA, :CANTON, :DISTRITO).join(', ')
+end
+
+def show(q)
+    i = 0
+    q.each do |r|
+        puts if i > 0
+        show_record(r)
+        i = i.succ
+    end
+
+    if i == 0
+        puts "No se encontraron registros"
+    end
+end
+
+def deaccent(s)
+    mapping = {
+        'á' => 'A', 'é' => 'E', 'í' => 'I', 'ó' => 'O', 'ú' => 'U',
+        'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+        'ü' => 'U', 'Ü' => 'U',
+        'ñ' => 'Ñ',
+        'ç' => 'C', 'Ç' => 'C',
+    }
+
+    n = s.clone
+
+    mapping.each { |k, v| n.gsub!(k, v) }
+
+    return n
+end
+
+Sequel.connect('sqlite://padron.db') do |db|
+    ds = db[:TBL_PADRON].
+        join(:TBL_JUNTAS, :NUM_JUNTA => :NUM_JUNTA).
+        join(:TBL_CODELE_COMPLETO,
+             :COD_PROVINCIA => :TBL_JUNTAS__COD_PROVINCIA,
+             :COD_CANTON    => :TBL_JUNTAS__COD_CANTON,
+             :COD_DIST_ELEC => :TBL_JUNTAS__COD_DIST_ELEC).
+        select(:nombre,
+               :pape,
+               :sape,
+               :cedula,
+               :ediv_nombre_provincia.as(:PROVINCIA),
+               :ediv_nombre_canton.as(:CANTON),
+               :ediv_nombre_dist_elec.as(:DISTRITO),
+               :tbl_padron__num_junta.as(:JUNTA)
+              ).
+        order(:cedula)
+
+    while true do
+        print ">> "
+
+        line = STDIN.gets
+        if line.nil?
+            exit 0
+        end
+
+        line = line.chomp.gsub(/^\s+/, '').gsub(/\s+$/, '')
+        search = deaccent(line.upcase)
+
+        case search
+        when /^(\d+)[- ]+(\d+)[- ]+(\d+)$/
+
+            n = "%d%04d%04d" % Regexp.last_match[1..3].map { |v| v.to_i }
+            puts "Buscando cédula #{line} (#{n}) ..."
+
+            show(ds.where(:CEDULA => n))
+
+        when /^\d+$/
+
+            puts "Buscando cédula #{line} ..."
+            show(ds.where(:CEDULA => search))
+
+        when /^([^,]+),\s+(\S+)$/,
+             /^(\S+)\s+(\S+)$/
+
+            nombre, pape = Regexp.last_match[1..2]
+            puts "Buscando nombre #{line} (#{nombre} #{pape}) ..."
+
+            q = ds.where(:NOMBRE => nombre, :PAPE => pape)
+            if q.count == 0
+                q = ds.where(
+                        :NOMBRE.like("%#{nombre}%"),
+                        :PAPE => pape)
+                if q.count == 0
+                    q = ds.where(
+                        :NOMBRE.like("%#{nombre}%"),
+                        :PAPE.like("%#{pape}%")
+                    )
+                end
+            end
+
+            show(q)
+
+        when /^([^,]+),\s+([^,]+),\s+(\S+)$/,
+             /^([^,]+),\s+(\S+)\s+(\S+)$/,
+             /^(\S+)\s+(\S+)\s+(\S+)$/
+
+            nombre, pape, sape = Regexp.last_match[1..3]
+            puts "Buscando nombre #{line} (#{nombre} #{pape} #{sape}) ..."
+
+            q = ds.where(:NOMBRE => nombre, :PAPE => pape, :SAPE => sape)
+            if q.count == 0
+                q = ds.where(
+                        :NOMBRE.like("%#{nombre}%"),
+                        :PAPE => pape,
+                        :SAPE => sape
+                )
+                if q.count == 0
+                    q = ds.where(
+                        :NOMBRE.like("%#{nombre}%"),
+                        :PAPE.like("%#{pape}%"),
+                        :SAPE.like("%#{sape}%")
+                    )
+                end
+            end
+
+            show(q)
+
+        when "Q", "QUIT", "EXIT", "SALIR"
+            exit 0
+
+        else
+            puts "No entiendo esta línea: #{line}"
+        end
+
+        puts
+    end
+end

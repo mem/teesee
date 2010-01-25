@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'sequel'
+require 'csv'
+
+Sequel.connect('sqlite://padron.db') do |db|
+    Dir.glob('TBL_*.csv').each do |file|
+        table = file.sub(/.csv$/, '')
+        puts ">>> #{table}"
+        skip = true
+        i = 0
+        db.transaction do
+            CSV.foreach(file) do |data|
+                if i % 100 == 0
+                    puts i
+                end
+
+                if skip
+                    skip = false
+                else
+                    db[table.to_sym].insert(data)
+                    i = i.succ
+                end
+            end
+        end
+    end
+end

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+DB="BD_PADRON.mdb"
+
+for table in `mdb-tables -1 "$DB"` ; do
+    mdb-export "$DB" "$table" > "$table.csv"
+done
