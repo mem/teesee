@@ -5,3 +5,7 @@ DB="BD_PADRON.mdb"
 for table in `mdb-tables -1 "$DB"` ; do
     mdb-export "$DB" "$table" > "$table.csv"
 done
+
+pdftohtml -noframes -stdout CENTROSVOTACION.pdf |
+lynx --dump --width=1000 -stdin |
+egrep '^ +[[:digit:]]{6} ' > CENTROSVOTACION.txt
