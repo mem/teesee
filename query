@@ -4,9 +4,8 @@ require 'rubygems'
 require 'sequel'
 
 def show_record(r)
-    printf "  Cédula: %s\n", r[:CEDULA]
-    printf "  Nombre: %s\n",
-        r.values_at(:NOMBRE, :PAPE, :SAPE).join(' ')
+    nombre = r.values_at(:NOMBRE, :PAPE, :SAPE).join(' ')
+    printf " Persona: %s - %s\n", r[:CEDULA], nombre
     printf "   Junta: %s (%s)\n", r[:LOC], r[:JUNTA]
     printf "   Lugar: %s\n",
         r.values_at(:PROVINCIA, :CANTON, :DISTRITO).join(', ')
