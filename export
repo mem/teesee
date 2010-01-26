@@ -1,11 +1,24 @@
 #!/bin/sh
 
-DB="BD_PADRON.mdb"
+DB="$1"
+centros_de_votacion="$2"
+
+if [ -z "$DB" -o ! -e "$DB" ] ; then
+    echo E: La base de datos no fue especificada o no está disponible.
+    exit 1
+fi
+
+if [ -z "${centros_de_votacion}" -o ! -e "${centros_de_votacion}" ] ; then
+    cat <<EOT
+E: La lista de centros de votación no fue especificada o no está disponible.
+EOT
+    exit 1
+fi
 
 for table in `mdb-tables -1 "$DB"` ; do
     mdb-export "$DB" "$table" > "$table.csv"
 done
 
-pdftohtml -noframes -stdout CENTROSVOTACION.pdf |
+pdftohtml -noframes -stdout "${centros_de_votacion}" |
 lynx --dump --width=1000 -stdin |
-egrep '^ +[[:digit:]]{6} ' > CENTROSVOTACION.txt
+egrep '^ +[[:digit:]]{6} ' > `basename "${centros_de_votacion}" .pdf`.txt

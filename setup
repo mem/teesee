@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ ! -e BD_PADRON.mdb -a -e BD_PADRON.mdb.lzma ] ; then
+    lzma -d --keep BD_PADRON.mdb.lzma
+fi
+
+if [ ! -e BD_PADRON.mdb ] ; then
+    echo E: La base de datos no está disponible.
+    exit 1
+fi
+
+./export BD_PADRON.mdb CENTROSVOTACION.pdf
+sqlite padron.db '.read schema.sql'
+./import
