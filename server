@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+require 'tse'
+require 'webrick'
+include WEBrick
+
+TSE::run do |ds|
+    root_proc = lambda do |req, resp|
+      resp['Content-Type'] = "text/html"
+
+      result = ""
+      i = 0
+      if req.query.has_key?('q')
+          q = req.query['q'].gsub(/^\s+/, '').gsub(/\s+$/, '')
+          r, what, search = TSE::query(ds, q)
+          if r.nil? or r.count == 0
+              result = "No se encontraron resultados"
+          else
+              r.each do |row|
+                  nombre = row.values_at(:NOMBRE, :PAPE, :SAPE).join(' ')
+                  junta = "#{row[:LOC]} (#{row[:JUNTA]})"
+                  lugar =
+                      row.values_at(:PROVINCIA, :CANTON, :DISTRITO).join(', ')
+
+                  color = i % 2 == 0 ? "even" : "odd"
+                  result += %{<div class="#{color}">}
+                  result += %{<p>Persona: #{nombre} (#{row[:CEDULA]})</p>}
+                  result += %{<p>Junta: #{junta}</p>}
+                  result += %{<p>Lugar: #{lugar}</p>}
+                  result += %{</div>}
+
+                  i = i+1
+              end
+          end
+      end
+
+      resp.body = %{
+    <html>
+    <style>
+    .odd { background-color: #EEE; }
+    .even { background-color: #FFF; }
+    </style>
+    <body onload="document.f.q.focus()">
+        <form name="f" action="/">
+            <input type="text" name="q" size=60 value="">
+            <input type="submit" name="submit" value="Consultar">
+        </form>
+        #{result}
+    </body></html>
+      }
+    end
+
+    root = HTTPServlet::ProcHandler.new(root_proc)
+
+    s = HTTPServer.new(:Port => 2000)
+
+    s.mount("/", root)
+    trap("INT"){ s.shutdown }
+    s.start
+end
