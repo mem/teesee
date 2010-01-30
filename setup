@@ -15,7 +15,7 @@ if [ ! -e BD_PADRON.mdb ] ; then
     exit 1
 fi
 
-./export BD_PADRON.mdb CENTROSVOTACION.pdf
+./export BD_PADRON.mdb
 sqlite3 padron.db '.read schema.sql'
 ./import
 sqlite3 padron.db '.read indexes.sql'

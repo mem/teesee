@@ -31,22 +31,4 @@ Sequel.connect('sqlite://padron.db') do |db|
             end
         end
     end
-
-    File.open('CENTROSVOTACION.txt') do |file|
-        db.transaction do
-            ds = db[:TBL_CENTROS_VOTACION]
-            file.each do |line|
-                if line =~ /^\s*(\d+)\s+(.+\S)\s+(\d+)\s+(\d+)\s+(\D.+?)\s*$/
-                    m = Regexp.last_match
-                    a, b = m[3..4].map { |v| v.to_i }
-                    (a..b).each do |junta|
-                        ds.insert(:JUNTA => junta.to_i, :DESCRIPCION => m[5])
-                    end
-                else
-                    STDERR.puts "The hell? => #{line}"
-                end
-            end
-        end
-    end
 end
-
