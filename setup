@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# Copyright (C) 2010 Marcelo E. Magallón <marcelo.magallon@gmail.com>
+#
+# This program is in the public domain.  To the extend permitted by
+# applicable law I relinquish all my rights as copyright holder.  You
+# are free to use, copy, modify and redistribute it as you see fit.
 
 if [ ! -e BD_PADRON.mdb -a -e BD_PADRON.mdb.lzma ] ; then
     lzma -d --keep BD_PADRON.mdb.lzma

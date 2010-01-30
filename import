@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+#
+# Copyright (C) 2010 Marcelo E. Magallón <marcelo.magallon@gmail.com>
+#
+# This program is in the public domain.  To the extend permitted by
+# applicable law I relinquish all my rights as copyright holder.  You
+# are free to use, copy, modify and redistribute it as you see fit.
 
 require 'rubygems'
 require 'sequel'
