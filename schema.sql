@@ -27,7 +27,16 @@ DROP TABLE IF EXISTS TBL_CENTROS_VOTACION;
 CREATE TABLE TBL_CENTROS_VOTACION
  (
         JUNTA                           Numeric (3),
-        DESCRIPCION                     Text (510)
+        DESCRIPCION                     Text (510),
+        DIRECCION                       Text (510)
+);
+
+DROP TABLE IF EXISTS TBL_CENTROS_VOTACION123;
+CREATE TABLE TBL_CENTROS_VOTACION123
+ (
+        JUNTA                           Numeric (3),
+        DESCRIPCION                     Text (510),
+        DIRECCION                       Text (510)
 );
 -- CREATE ANY INDEXES ...
 
@@ -82,57 +91,3 @@ CREATE TABLE TBL_CODELE_COMPLETO
         EDIV_NOMBRE_CANTON              Text (510),
         EDIV_NOMBRE_DIST_ELEC           Text (510)
 );
--- CREATE ANY INDEXES ...
-
-CREATE UNIQUE INDEX IF NOT EXISTS
-    tbl_padron_cedula ON tbl_padron (
-        cedula
-    );
-
-CREATE INDEX IF NOT EXISTS
-    tbl_padron_nombre_pape_sape ON tbl_padron (
-        nombre,
-        pape,
-        sape
-    );
-
-CREATE INDEX IF NOT EXISTS
-    tbl_padron_nombre_pape ON tbl_padron (
-        nombre,
-        pape
-    );
-
-CREATE INDEX IF NOT EXISTS
-    tbl_padron_pape_sape ON tbl_padron (
-        pape,
-        sape
-    );
-
-CREATE UNIQUE INDEX IF NOT EXISTS
-    tbl_codele_completo_lugar ON tbl_codele_completo (
-        cod_provincia,
-        cod_canton,
-        cod_dist_elec
-    );
-
-CREATE INDEX IF NOT EXISTS
-    tbl_juntas_lugar ON tbl_juntas (
-        cod_provincia,
-        cod_canton,
-        cod_dist_elec
-    );
-
-CREATE UNIQUE INDEX IF NOT EXISTS
-    tbl_juntas_num_junta ON tbl_juntas (
-        num_junta
-    );
-
-CREATE INDEX IF NOT EXISTS
-    tbl_padron_num_junta ON tbl_padron (
-        num_junta
-    );
-
-CREATE INDEX IF NOT EXISTS
-    tbl_centros_votacion_junta ON tbl_centros_votacion (
-        junta
-    );
