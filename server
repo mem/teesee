@@ -18,53 +18,64 @@
 # 02110-1301 USA.
 
 require 'tse'
+require 'erb'
 require 'webrick'
 include WEBrick
+
+template = %q{
+    <html>
+        <head>
+            <title>Consultas al padrón electoral</title>
+        </head>
+        <style>
+            .odd { background-color: #EEE; }
+            .even { background-color: #FFF; }
+        </style>
+        <body onload="document.f.q.focus()">
+            <form name="f" action="/">
+                <input type="text" name="q" size=60 value="">
+                <input type="submit" name="submit" value="Consultar">
+            </form>
+            <% if not q.nil? %>
+                <% if r.nil? or r.count == 0 %>
+                    <p>No se encontraron resultados</p>
+                <% else %>
+                    <% r.each do |row| %>
+                        <%
+                            nombre = row.
+                                values_at(:NOMBRE, :PAPE, :SAPE).
+                                join(' ')
+                            junta = "#{row[:LOC]} (#{row[:JUNTA]})"
+                            lugar = row.
+                                values_at(:PROVINCIA, :CANTON, :DISTRITO).
+                                join(', ')
+                            color = i % 2 == 0 ? "even" : "odd"
+                        %>
+                        <div class="<%= color%>">
+                            <p>Persona: <%= "#{nombre} (#{row[:CEDULA]})" %></p>
+                            <p>Junta: <%= junta %></p>
+                            <p>Lugar: <%= lugar %></p>
+                        </div>
+                        <% i = i+1 %>
+                    <% end %>
+                <% end %>
+            <% end %>
+        </body>
+    </html>
+}.gsub(/^    /, '')
 
 TSE::run do |ds|
     root_proc = lambda do |req, resp|
       resp['Content-Type'] = "text/html"
 
-      result = ""
-      i = 0
+      message = ERB.new(template)
+      q, r, i = nil, nil, 0
       if req.query.has_key?('q')
           q = req.query['q'].gsub(/^\s+/, '').gsub(/\s+$/, '')
           r, what, search = TSE::query(ds, q)
-          if r.nil? or r.count == 0
-              result = "No se encontraron resultados"
-          else
-              r.each do |row|
-                  nombre = row.values_at(:NOMBRE, :PAPE, :SAPE).join(' ')
-                  junta = "#{row[:LOC]} (#{row[:JUNTA]})"
-                  lugar =
-                      row.values_at(:PROVINCIA, :CANTON, :DISTRITO).join(', ')
-
-                  color = i % 2 == 0 ? "even" : "odd"
-                  result += %{<div class="#{color}">}
-                  result += %{<p>Persona: #{nombre} (#{row[:CEDULA]})</p>}
-                  result += %{<p>Junta: #{junta}</p>}
-                  result += %{<p>Lugar: #{lugar}</p>}
-                  result += %{</div>}
-
-                  i = i+1
-              end
-          end
       end
 
-      resp.body = %{
-    <html>
-    <style>
-    .odd { background-color: #EEE; }
-    .even { background-color: #FFF; }
-    </style>
-    <body onload="document.f.q.focus()">
-        <form name="f" action="/">
-            <input type="text" name="q" size=60 value="">
-            <input type="submit" name="submit" value="Consultar">
-        </form>
-        #{result}
-    </body></html>
-      }
+      resp.body = message.result(binding)
     end
 
     root = HTTPServlet::ProcHandler.new(root_proc)
