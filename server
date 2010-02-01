@@ -30,16 +30,26 @@ template = %q{
         <style>
             .odd { background-color: #EEE; }
             .even { background-color: #FFF; }
+            .label { text-align: right; font-weight: bold; }
+            table {
+                border-collapse: collapse;
+                border-spacing: 0;
+                width: 80%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            td { padding: 3px; }
         </style>
         <body onload="document.f.q.focus()">
             <form name="f" action="/">
                 <input type="text" name="q" size=60 value="">
-                <input type="submit" name="submit" value="Consultar">
+                <input type="submit" value="Consultar">
             </form>
-            <% if not q.nil? %>
-                <% if r.nil? or r.count == 0 %>
+            <% if not r.nil? %>
+                <% if r.count == 0 %>
                     <p>No se encontraron resultados</p>
                 <% else %>
+                    <table>
                     <% r.each do |row| %>
                         <%
                             nombre = row.
@@ -51,13 +61,23 @@ template = %q{
                                 join(', ')
                             color = i % 2 == 0 ? "even" : "odd"
                         %>
-                        <div class="<%= color%>">
-                            <p>Persona: <%= "#{nombre} (#{row[:CEDULA]})" %></p>
-                            <p>Junta: <%= junta %></p>
-                            <p>Lugar: <%= lugar %></p>
-                        </div>
+                        <tbody class="<%= color%>">
+                            <tr>
+                                <td class="label">Persona</td>
+                                <td><%= "#{nombre} (#{row[:CEDULA]})" %></td>
+                            </tr>
+                            <tr>
+                                <td class="label">Junta</td>
+                                <td><%= junta %></td>
+                            </tr>
+                            <tr>
+                                <td class="label">Lugar</td>
+                                <td><%= lugar %></td>
+                            </tr>
+                        </tbody>
                         <% i = i+1 %>
                     <% end %>
+                    </table>
                 <% end %>
             <% end %>
         </body>
